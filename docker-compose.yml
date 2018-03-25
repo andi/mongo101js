@@ -1,0 +1,21 @@
+version: '2'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    volumes:
+      - './app:/app'
+    ports:
+      - "8081:3000"
+    links:
+      - db
+    command: bash -c "tail -f /dev/null"
+  db:
+    image: mongo:3.4
+    volumes:
+      - mongodb:/data/db
+      - './data:/coursedata'
+
+volumes:
+  mongodb:
