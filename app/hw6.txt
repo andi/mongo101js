@@ -1,0 +1,45 @@
+db.companies.aggregate( [
+    { $match: { "relationships.person": { $ne: null } } },
+    { $project: { company: "$name", relationships: 1, _id: 0 } },
+    { $unwind: "$relationships" },
+    { $group: {
+        _id: "$relationships.person",
+        companies: { $addToSet: "$company" }
+    } },
+    { $project: {person: "$_id", companiesCount: {$size: "$companies"}} },
+    { $match: { "person.permalink": 'roger-ehrenberg' } }
+] )
+
+
+db.grades.aggregate( [
+  { $unwind: "$scores" },
+  { $match: { "scores.type": {$ne: 'quiz'} } },
+  { $group: {
+    _id: {
+      class: "$class_id",
+      student: "$student_id"
+    },
+    studentAverage: { $avg: "$scores.score" }
+  }},
+  { $group: {
+    _id: "$_id.class",
+    classAverage: { $avg: "$studentAverage" }
+  }},
+  { $sort: {classAverage: -1 }}
+
+] )
+
+db.companies.aggregate( [
+  { $match: { founded_year: 2004 }},
+  { $project: {
+    name: 1,
+    funding_rounds: 1,
+    funding_rounds_count: { $size: "$funding_rounds" }
+  }},
+  { $match: { funding_rounds_count: { $gte: 5 }}},
+  { $project: {
+    name: 1,
+    raised_average: { $avg: "$funding_rounds.raised_amount"}
+  }},
+  { $sort: { raised_average: -1 }}
+] )
